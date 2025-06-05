@@ -1,0 +1,145 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa; /* Light gray background */
+    padding-bottom: 70px; /* Height of the footer */
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1140px; /* Consistent max width */
+}
+
+.card {
+    border: none; /* Remove default card border */
+    border-radius: 0.5rem; /* Softer corners */
+    transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.product-card .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+.product-card .product-type {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+.product-card .product-description {
+    font-size: 0.9rem;
+    color: #495057;
+    flex-grow: 1; /* Make description take available space */
+    margin-bottom: 1rem;
+}
+.product-card .product-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #0d6efd; /* Bootstrap primary color */
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #e9ecef; /* Slightly darker for contrast */
+    border-top: 1px solid #dee2e6;
+}
+
+.alert {
+    border-radius: 0.3rem;
+}
+
+.table th {
+    background-color: #343a40; /* Darker header for tables */
+    color: #fff;
+}
+
+.badge {
+    font-size: 0.8em;
+    padding: 0.4em 0.7em;
+    color: #050404;
+    background-color: #f6ea02;
+}
+
+.status-menunggu-proses {
+    background-color: #E67E22; /* Oranye lebih gelap */
+    color: #FFFFFF; /* Teks putih */
+}
+
+.status-Berhasil{
+    background-color: #0cff1c; /* Oranye lebih gelap */
+    color: #FFFFFF; /* Teks putih */
+}
+
+/* Tambahkan ini untuk membuat teks saldo di navbar lebih jelas */
+#mainNavbar .navbar-text {
+    color: #ffffff !important; /* Warna putih solid */
+    /* Anda juga bisa mencoba opacity jika masalahnya adalah transparansi: */
+    /* opacity: 1 !important; */
+}
+
+/* Blok untuk .logout-btn yang menyebabkan error telah dihapus. */
+/* Jika Anda ingin menambahkan style untuk logout-btn nanti, */
+.navbar-text {
+    font-size: 0.820rem;
+}
+
+.type-badge {
+    background-color: #f8c220; /* Warna kuning muda */
+    padding: 3px 8px;
+    border-radius: 1rem;       /* Sesuaikan radiusnya */
+    color: #f3f3f3;
+    font-size: 0.8em;         /* Sesuaikan ukuran font jika perlu */
+    display: inline-block;
+    font-weight: 500;
+}
+
+/* static/style.css */
+
+/* Style untuk tag <mark> yang menampilkan query pencarian */
+h2 mark { /* Anda bisa membuat selector ini lebih spesifik jika perlu, misal: .page-title mark */
+    background-color: #f8c220; /* Warna kuning muda default Bootstrap, bisa diganti */
+    padding: 0.2em 0.4em;     /* Sedikit padding agar teks tidak terlalu mepet */
+    border-radius: 1rem; 
+    color: #f3f3f3;      /* GANTI 5px DENGAN NILAI RADIUS YANG ANDA INGINKAN */
+                              /* Contoh: 0px (tanpa radius), 3px, 0.25rem, dll. */
+    /* Anda juga bisa mengubah properti lain jika mau: */
+    /* color: #555; */ /* Warna teks jika ingin diubah */
+    /* font-weight: bold; */
+}
+.status-pending-qris-manual-confirmation {
+    color: #ffffff !important;
+}
+
+.badge.bg-success {
+    color: #eff0ef !important; /* Contoh warna hijau tua untuk teks, sesuaikan */
+}
+
+.badge.bg-danger {
+    color: #eff0ef !important; /* Contoh warna hijau tua untuk teks, sesuaikan */
+}
+
+.badge.bg-warning {
+    color: #000000 !important; /* Contoh warna hijau tua untuk teks, sesuaikan */
+}

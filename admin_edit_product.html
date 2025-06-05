@@ -1,0 +1,54 @@
+{# templates/admin_edit_product.html #}
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Edit Produk - Admin{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Edit Produk: {{ product.name }}</h1>
+<div class="card shadow-sm">
+    <div class="card-body">
+        {# PENTING: tambahkan enctype #}
+        <form method="POST" action="{{ url_for('admin_edit_product', product_id=product_id) }}" enctype="multipart/form-data">
+            {{ macros.form_field(name='name', label_text='Nama Produk', value=product.name, required=True) }}
+            
+            {% set product_type_options = [
+                ('pulsa', 'Pulsa'), 
+                ('token', 'Token Listrik'), 
+                ('data', 'Pulsa Data'),
+                ('game', 'Voucher Game'),
+                ('ewallet', 'Saldo E-Wallet')
+            ] %}
+            {{ macros.select_field(name='type', label_text='Tipe Produk', options=product_type_options, selected_value=product.type, required=True) }}
+            
+            {{ macros.form_field(name='price', label_text='Harga Jual (Rp)', type='number', value=product.price, required=True) }}
+            
+            {{ macros.textarea_field(name='description', label_text='Deskripsi (Opsional)', value=product.description, rows=3) }}
+
+            {# Gambar Produk Saat Ini & Input untuk Ganti Gambar #}
+            <div class="mb-3">
+                <label for="product_image" class="form-label">Ganti Gambar Produk (Opsional)</label>
+                {# MODIFIKASI DI SINI untuk menggunakan image_preview_url #}
+                {% if image_preview_url %} {# Gunakan image_preview_url yang dikirim dari app.py #}
+                    <p>Gambar Saat Ini: <br>
+                        <img src="{{ url_for('static', filename=image_preview_url) }}"
+                             alt="{{ product.name }}" style="max-width: 150px; max-height: 150px; margin-bottom: 10px; border: 1px solid #ddd; padding: 5px;">
+                    </p>
+                    <p><small>Unggah file baru untuk mengganti gambar di atas. Biarkan kosong jika tidak ingin mengubah gambar.</small></p>
+                {% elif product.image_filename %} 
+                    {# Fallback jika image_preview_url tidak ada tapi product.image_filename ada (seharusnya tidak terjadi jika app.py benar) #}
+                    <p class="text-warning">Preview gambar tidak tersedia, tetapi ada file gambar tersimpan: {{ product.image_filename }}</p>
+                    <p><small>Unggah file baru untuk mengganti gambar. Biarkan kosong jika tidak ingin mengubah gambar.</small></p>
+                {% else %}
+                    <p class="text-muted">Belum ada gambar untuk produk ini.</p>
+                {% endif %}
+                <input class="form-control" type="file" id="product_image" name="product_image" accept="image/png, image/jpeg, image/gif">
+                <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG, GIF.</small>
+            </div>
+            
+            {{ macros.submit_button(text='Update Produk', icon_class='fas fa-save') }}
+            <a href="{{ url_for('admin_products') }}" class="btn btn-secondary">Batal</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

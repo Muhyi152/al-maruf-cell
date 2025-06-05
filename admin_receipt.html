@@ -1,0 +1,128 @@
+<!-- templates/admin_receipt.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struk Pesanan - {{ order.id[:8] }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+        }
+        .receipt-container {
+            width: 80mm; /* Lebar umum struk thermal printer */
+            max-width: 400px; /* Batas maksimal untuk tampilan web */
+            margin: auto;
+            padding: 15px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+        .receipt-header, .receipt-footer {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .receipt-header h4 {
+            margin: 0;
+        }
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .item-table th, .item-table td {
+            border-bottom: 1px solid #eee;
+            padding: 5px 0;
+            text-align: left;
+        }
+        .item-table th:last-child, .item-table td:last-child {
+            text-align: right;
+        }
+        .total-section {
+            text-align: right;
+            font-weight: bold;
+        }
+        @media print {
+            body {
+                margin: 0;
+                background-color: white;
+            }
+            .receipt-container {
+                width: 100%;
+                max-width: none;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+            }
+            .btn-print, .btn-back {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="receipt-header">
+            <h4>APLIKASI KIOS AL-Maruf cell😎😎</h4>
+            <p>Bukti Transaksi</p>
+        </div>
+
+        <p><strong>ID Pesanan:</strong> {{ order.id }}</p>
+        <p><strong>Tanggal:</strong> {{ order.timestamp }}</p>
+        <p><strong>User ID Pembeli:</strong> {{ order.user_id }}</p>
+        {% if user_pemesan %}
+        <p><strong>Nama Pembeli:</strong> {{ user_pemesan.username }}</p>
+        {% endif %}
+        <p><strong>Nomor Tujuan:</strong> {{ order.nomor_tujuan }}</p>
+        
+        <hr>
+        
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th>Produk</th>
+                    <th>Harga</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ order.product_name }}</td>
+                    <td>Rp {{ "{:,.0f}".format(order.total_price).replace(',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <p>TOTAL: Rp {{ "{:,.0f}".format(order.total_price).replace(',', '.') }}</p>
+        </div>
+        
+        <p><strong>Metode Pembayaran:</strong> {{ order.payment_method }}</p>
+        <p><strong>Status:</strong> 
+            {% if order.status == 'processed' %}
+                BERHASIL
+            {% elif order.status == 'pending_processing' %}
+                MENUNGGU PROSES
+            {% elif order.status == 'failed' %}
+                GAGAL
+            {% else %}
+                {{ order.status|upper }}
+            {% endif %}
+        </p>
+
+        <hr>
+        <div class="receipt-footer">
+            <p>Terima kasih!</p>
+        </div>
+
+        <div class="text-center mt-3">
+            <button onclick="window.print()" class="btn btn-primary btn-print">Cetak Struk</button>
+            <a href="{{ url_for('admin_orders') }}" class="btn btn-secondary btn-back">Kembali ke Daftar Pesanan</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

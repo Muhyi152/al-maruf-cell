@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Aplikasi Kios Digital{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <nav id="mainNavbar" class="navbar navbar-expand-lg navbar-dark fixed-top bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-mobile-alt me-2"></i><strong>Al-Maruf cell</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if current_user and current_user.role == 'user' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Beli Produk</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.args.get('category') %}active{% endif %}" href="#" id="navbarDropdownCategories" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Kategori Produk
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownCategories">
+                                <li><a class="dropdown-item {% if request.args.get('category') == 'semua' or not request.args.get('category') %}active{% endif %}" href="{{ url_for('index', category='semua') }}">Semua Kategori</a></li>
+                                {% if navbar_categories %}
+                                    {% for category_name in navbar_categories %}
+                                        <li><a class="dropdown-item {% if request.args.get('category') == category_name %}active{% endif %}" href="{{ url_for('index', category=category_name) }}">{{ category_name|capitalize }}</a></li>
+                                    {% endfor %}
+                                {% else %}
+                                     <li><a class="dropdown-item disabled" href="#">Tidak ada kategori</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        {# --- PERUBAHAN: Pindahkan link Riwayat Pesanan dan Top Up Saldo ke dalam dropdown user --- #}
+                        {# Ini opsional, tapi bisa membuat navbar lebih ringkas #}
+                        {# Jika ingin tetap di luar, biarkan seperti semula #}
+                    {% elif current_user and current_user.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint in ['admin_products', 'admin_add_product', 'admin_edit_product'] %}active{% endif %}" href="{{ url_for('admin_products') }}">Kelola Produk</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_orders' %}active{% endif %}" href="{{ url_for('admin_orders') }}">Kelola Pesanan</a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Form Pencarian Produk (Hanya untuk role 'user') -->
+                {% if current_user and current_user.role == 'user' %}
+                <form method="GET" action="{{ url_for('index') }}" class="d-flex me-auto ms-lg-3" role="search" style="max-width: 300px;">
+                    <input class="form-control form-control-sm me-2" type="search" name="q" placeholder="Cari Produk..." aria-label="Search" value="{{ request.args.get('q', '') }}">
+                    <button class="btn btn-sm btn-outline-light" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+                {% endif %}
+                <!-- Akhir Form Pencarian Produk -->
+
+                <!-- === AWAL PERUBAHAN UNTUK PROFIL PENGGUNA === -->
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user %}
+                        {% if current_user.role == 'user' %}
+                            {# Dropdown untuk pengguna 'user' #}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {% if request.endpoint in ['user_profile', 'user_orders', 'top_up_saldo'] %}active{% endif %}" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-circle me-1"></i> <!-- Ikon user -->
+                                    Halo, {{ current_user.id if current_user.id else session.get('user_id') }}
+                                    (Saldo: {{ current_user.balance | format_rupiah }})
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
+                                    <li><a class="dropdown-item {% if request.endpoint == 'user_profile' %}active{% endif %}" href="{{ url_for('user_profile') }}"><i class="fas fa-id-card me-2"></i>Profil Saya</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'user_orders' %}active{% endif %}" href="{{ url_for('user_orders') }}"><i class="fas fa-history me-2"></i>Riwayat Pesanan</a></li>
+                                    <li><a class="dropdown-item {% if request.endpoint == 'top_up_saldo' %}active{% endif %}" href="{{ url_for('top_up_saldo') }}"><i class="fas fa-wallet me-2"></i>Top Up Saldo</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a href="{{ url_for('logout') }}" class="dropdown-item text-danger">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% elif current_user.role == 'admin' %}
+                            {# Untuk Admin, mungkin hanya teks dan tombol logout, atau dropdown admin jika ada item lain #}
+                             <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {% if request.endpoint == 'user_profile' %}active{% endif %}" href="#" id="navbarAdminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-shield me-1"></i> <!-- Ikon admin -->
+                                    Admin: {{ current_user.id }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarAdminDropdown">
+                                    <li><a class="dropdown-item {% if request.endpoint == 'user_profile' %}active{% endif %}" href="{{ url_for('user_profile') }}"><i class="fas fa-id-card me-2"></i>Profil Admin</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a href="{{ url_for('logout') }}" class="dropdown-item text-danger">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <!-- === AKHIR PERUBAHAN UNTUK PROFIL PENGGUNA === -->
+            </div>
+        </div>
+    </nav>
+
+    <div style="padding-top: 70px;"> {# Sesuaikan nilai 70px dengan tinggi navbar Anda #}
+        <div class="container mt-4" id="flash-messages-container">
+            {% include '_messages.html' %}
+        </div>
+
+        <main class="container mt-4 mb-5">
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-light text-center">
+        <div class="container">
+            <span class="text-muted d-block mb-2">© {{ now.year if now else "" }} KIOS Al-Maruf cell - Dibuat dengan MUHYI</span>
+            <p class="mb-0">
+                Butuh bantuan atau ingin komplain?
+                <a href="https://wa.me/6285792698607?text=Halo%20Admin%20Al-Maruf%20cell,%0A%0ASaya%20butuh%20bantuan%20atau%20ingin%20melaporkan%20masalah."
+                   target="_blank"
+                   style="color: #25D366; text-decoration: underline; font-weight: bold;">
+                    <i class="fab fa-whatsapp"></i> Hubungi via WhatsApp
+                </a>
+            </p>
+        </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

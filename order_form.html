@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Form Pemesanan - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Form Pemesanan</h4>
+                </div>
+                <div class="card-body">
+                    <h5>{{ product.name }}</h5>
+                    <p class="card-text">
+                        <strong>Tipe:</strong> {{ product.type | capitalize }}<br>
+                        <strong>Harga:</strong> {{ product.price | format_rupiah }}<br>
+                        <strong>Deskripsi:</strong> {{ product.description }}
+                    </p>
+                    <hr>
+                    <form method="POST" action="{{ url_for('order_form', product_id=product_id) }}" id="productOrderForm">
+                        <div class="mb-3">
+                            <label for="nomor_tujuan" class="form-label">
+                                {% if product.type == 'pulsa' or product.type == 'paket data' %}
+                                    Nomor HP Tujuan
+                                {% elif product.type == 'token' %}
+                                    Nomor Meter/ID Pelanggan Listrik
+                                {% elif product.type == 'e-money' or product.type == 'e-wallet' %}
+                                    Nomor Akun E-Money/E-Wallet
+                                {% else %}
+                                    Nomor Tujuan/ID Pelanggan
+                                {% endif %}
+                            </label>
+                            <input type="text" class="form-control" id="nomor_tujuan" name="nomor_tujuan"
+                                   value="{{ nomor_tujuan_val if nomor_tujuan_val is defined else '' }}"
+                                   placeholder="Masukkan nomor tujuan" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label">Metode Pembayaran</label>
+                            <select class="form-select" id="payment_method" name="payment_method" required>
+                                <option value="" {% if not payment_method_val or payment_method_val == '' %}selected{% endif %}>-- Pilih Metode Pembayaran --</option>
+                                <option value="saldo_akun" {% if payment_method_val == 'saldo_akun' %}selected{% endif %}>Saldo Akun (Saldo Anda: {{ current_user.balance | format_rupiah }})</option>
+                                <option value="qris_manual" {% if payment_method_val == 'qris_manual' %}selected{% endif %}>QRIS (Scan Manual)</option>
+                            </select>
+                            <div id="payment_info" class="form-text mt-1">
+                                Pilih metode pembayaran Anda.
+                            </div>
+                        </div>
+
+                        <div id="qris_display_area" class="mb-3 text-center" style="display: none;">
+                            <hr>
+                            <p class="fw-bold">Scan QRIS di bawah ini sejumlah {{ product.price | format_rupiah }}:</p>
+                            <img src="{{ url_for('static', filename='qris_almaruf.jpeg') }}" alt="QRIS Pembayaran Al-Maruf Cell" class="img-fluid my-3" style="max-width: 250px; border: 1px solid #ddd;">
+                            <p class="form-text">Setelah melakukan pembayaran, klik tombol di bawah ini.</p>
+                             <div class="alert alert-warning mt-2" role="alert" style="font-size: 0.9em;">
+                                <strong>PENTING:</strong> Pastikan Anda telah melakukan transfer sebelum menekan tombol "Konfirmasi Pesanan". Pesanan akan diproses setelah admin memverifikasi pembayaran Anda.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100" id="confirmOrderButton">
+                            <i class="fas fa-check-circle"></i> Konfirmasi Pesanan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const paymentMethodSelect = document.getElementById('payment_method');
+    const paymentInfoText = document.getElementById('payment_info');
+    const qrisDisplayArea = document.getElementById('qris_display_area');
+    const confirmOrderButton = document.getElementById('confirmOrderButton'); // Tidak perlu diubah teksnya
+
+    if (paymentMethodSelect) {
+        function handlePaymentMethodChange() {
+            const selectedValue = paymentMethodSelect.value;
+            qrisDisplayArea.style.display = 'none'; 
+
+            if (selectedValue === 'saldo_akun') {
+                paymentInfoText.textContent = 'Pembayaran akan dipotong langsung dari saldo akun Anda.';
+            } else if (selectedValue === 'qris_manual') {
+                paymentInfoText.textContent = 'Silakan scan QRIS di bawah ini dan lakukan pembayaran.';
+                qrisDisplayArea.style.display = 'block';
+            } else if (selectedValue === '') { // Jika "-- Pilih Metode Pembayaran --"
+                 paymentInfoText.textContent = 'Pilih metode pembayaran Anda.';
+            } else {
+                // Untuk metode lain jika ada di masa depan
+                paymentInfoText.textContent = 'Metode pembayaran lain.';
+            }
+        }
+        paymentMethodSelect.addEventListener('change', handlePaymentMethodChange);
+        // Panggil saat load untuk inisialisasi jika ada value terpilih (misal dari error handling backend)
+        // atau jika pengguna kembali ke halaman dengan back button browser
+        handlePaymentMethodChange(); 
+    }
+</script>
+{% endblock %}

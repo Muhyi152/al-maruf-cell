@@ -1,0 +1,40 @@
+{# templates/admin_add_product.html #}
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Tambah Produk Baru - Admin{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Tambah Produk Baru</h1>
+<div class="card shadow-sm">
+    <div class="card-body">
+        {# PENTING: tambahkan enctype #}
+        <form method="POST" action="{{ url_for('admin_add_product') }}" enctype="multipart/form-data">
+            {{ macros.form_field(name='name', label_text='Nama Produk', required=True) }}
+            
+            {% set product_type_options = [
+                ('pulsa', 'Pulsa'), 
+                ('token', 'Token Listrik'), 
+                ('data', 'Pulsa Data'),
+                ('game', 'Voucher Game'),
+                ('ewallet', 'Saldo E-Wallet')
+            ] %}
+            {{ macros.select_field(name='type', label_text='Tipe Produk', options=product_type_options, required=True) }}
+            
+            {{ macros.form_field(name='price', label_text='Harga Jual (Rp)', type='number', required=True, help_text='Masukkan angka saja, contoh: 15000') }}
+            
+            {{ macros.textarea_field(name='description', label_text='Deskripsi (Opsional)', rows=3) }}
+
+            {# Input untuk gambar produk #}
+            <div class="mb-3">
+                <label for="product_image" class="form-label">Gambar Produk (Opsional)</label>
+                <input class="form-control" type="file" id="product_image" name="product_image" accept="image/png, image/jpeg, image/gif">
+                <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG, GIF.</small>
+            </div>
+            
+            {{ macros.submit_button(text='Simpan Produk', icon_class='fas fa-save') }}
+            <a href="{{ url_for('admin_products') }}" class="btn btn-secondary">Batal</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

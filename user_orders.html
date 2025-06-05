@@ -1,0 +1,41 @@
+<!-- templates/user_orders.html -->
+{% extends "base.html" %}
+
+{% block title %}Pesanan Saya{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Pesanan Saya</h2>
+    {% if orders %}
+        <div class="list-group">
+            <!-- Ubah loop di sini -->
+            {% for order in orders %} 
+            <div class="list-group-item list-group-item-action flex-column align-items-start mb-2">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">Pesanan: {{ order.product_name }} (ID: {{ order.id }})</h5>
+                    <small>Tanggal: {{ order.timestamp }}</small>
+                </div>
+                <p class="mb-1">Nomor Tujuan: {{ order.nomor_tujuan }}</p>
+                <p class="mb-1">Total Harga: Rp {{ "{:,.0f}".format(order.total_price).replace(',', '.') }}</p>
+                <p class="mb-1">Metode Pembayaran: {{ order.payment_method }}</p>
+                <p class.mb-1>Status:
+    {% if order.status == 'pending_processing' %}
+        <span class="badge status-menunggu-proses">Menunggu Proses</span>
+    {% elif order.status == 'processed' %}
+        <span class="badge status-Berhasil">Berhasil</span>
+    {% elif order.status == 'failed' %}
+        <span class="badge badge-danger">Gagal</span>
+    {% else %}
+        <span class="badge badge-secondary">{{ order.status }}</span>
+    {% endif %}
+</p>
+                <!-- Anda bisa menambahkan detail lain jika perlu -->
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Anda belum memiliki pesanan.</p>
+    {% endif %}
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Kembali ke Toko</a>
+</div>
+{% endblock %}

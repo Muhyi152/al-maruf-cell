@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}
+    {% if search_query %}
+        Hasil Pencarian: "{{ search_query }}"
+    {% elif selected_category and selected_category != 'semua' %}
+        Kategori: {{ selected_category|capitalize }}
+    {% else %}
+        Beli Produk
+    {% endif %}
+    - Al-Maruf Cell
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Selamat Datang di Kios Al-Maruf</h1>
+<p>Saldo Anda: <strong class="text-success">{{ current_user.balance | format_rupiah }}</strong> - <a href="{{ url_for('top_up_saldo') }}" class="btn btn-sm btn-outline-primary">Top Up Saldo</a></p>
+{# Menggunakan filter Jinja format_rupiah yang sudah Anda definisikan di app.py untuk konsistensi #}
+
+{# Filter kategori di konten sudah dihapus karena sekarang ada di navbar dropdown #}
+
+<h2 class="mt-3 mb-3">
+    {% if search_query %}
+        Hasil Pencarian untuk: <mark>"{{ search_query }}"</mark>
+        {% if selected_category and selected_category != 'semua' %}
+            <small class="text-muted">(dalam Kategori: {{ selected_category|capitalize }})</small>
+        {% endif %}
+    {% elif selected_category and selected_category != 'semua' %}
+        Produk Kategori: {{ selected_category|capitalize }}
+    {% else %}
+        Semua Produk
+    {% endif %}
+</h2>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {# Pastikan variabel 'products' yang diterima dari backend sudah sesuai dengan format yang diharapkan #}
+    {# Jika 'products' adalah dictionary dari backend: #}
+    {# {% for product_id, product_details in products.items() %} #}
+    {# Jika 'products' adalah list dari backend (lebih umum untuk hasil query): #}
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 shadow-sm product-card">
+            {% if product.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}"
+                     class="card-img-top" alt="{{ product.name }}"
+                     style="height: 200px; object-fit: cover; border-bottom: 1px solid #eee;">
+            {% else %}
+                <div style="height: 200px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #eee;">
+                    <span class="text-muted">Gambar Segera Hadir</span>
+                </div>
+            {% endif %}
+
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted product-type"><small class="type-badge">{{ product.type|default('Umum')|capitalize }}</small></p> {# Tambahkan default jika 'type' bisa kosong #}
+                <p class="card-text product-description">{{ product.description|truncate(70, True) }}</p>
+                <div class="mt-auto">
+                    <h6 class="card-subtitle mb-2 text-primary product-price">Harga: {{ product.price | format_rupiah }}</h6> {# Gunakan filter format_rupiah #}
+                    <a href="{{ url_for('order_form', product_id=product.id) }}" class="btn btn-primary w-100"> {# Asumsi product memiliki atribut 'id' #}
+                        <i class="fas fa-shopping-cart"></i> Beli Sekarang
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    {# Pesan jika tidak ada produk, disesuaikan dengan adanya pencarian dan kategori #}
+    <div class="col-12">
+        <div class="alert alert-info text-center" role="alert">
+            {% if search_query %}
+                Tidak ada produk yang cocok dengan pencarian Anda: <mark>"{{ search_query }}"</mark>.
+                {% if selected_category and selected_category != 'semua' %}
+                    <br>Dalam kategori "{{ selected_category|capitalize }}". Coba hapus filter kategori atau ubah kata kunci pencarian.
+                {% else %}
+                    <br>Coba dengan kata kunci lain.
+                {% endif %}
+            {% elif selected_category and selected_category != 'semua' %}
+                Tidak ada produk yang tersedia untuk kategori "{{ selected_category|capitalize }}".
+            {% else %}
+                Belum ada produk yang tersedia saat ini. Silakan cek kembali nanti!
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# Jika Anda menggunakan paginasi dari Flask-SQLAlchemy atau sejenisnya #}
+{% if products_pagination and products_pagination.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {# Tombol Previous #}
+        <li class="page-item {% if not products_pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('index', page=products_pagination.prev_num, category=selected_category, q=search_query) if products_pagination.has_prev else '#' }}">Sebelumnya</a>
+        </li>
+
+        {# Nomor Halaman #}
+        {% for page_num in products_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if products_pagination.page == page_num %}
+                <li class="page-item active" aria-current="page"><span class="page-link">{{ page_num }}</span></li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('index', page=page_num, category=selected_category, q=search_query) }}">{{ page_num }}</a></li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+
+        {# Tombol Next #}
+        <li class="page-item {% if not products_pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('index', page=products_pagination.next_num, category=selected_category, q=search_query) if products_pagination.has_next else '#' }}">Berikutnya</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

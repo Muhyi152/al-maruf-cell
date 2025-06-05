@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Pembayaran QRIS - Pesanan {{ order.id[:8] }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Pembayaran via QRIS</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p>Silakan lakukan pembayaran sebesar <strong>{{ order.total_price | format_rupiah }}</strong> untuk pesanan:</p>
+                    <p><strong>ID Pesanan:</strong> {{ order.id }}</p>
+                    <p><strong>Produk:</strong> {{ order.product_name }}</p>
+                    {% if order.nomor_tujuan and order.nomor_tujuan != 'AKUN_INTERNAL' %}
+                        <p><strong>Nomor Tujuan/Pelanggan:</strong> {{ order.nomor_tujuan }}</p>
+                    {% endif %}
+                    <hr>
+                    <p class="fw-bold">Scan QRIS di bawah ini menggunakan aplikasi pembayaran Anda:</p>
+                    
+                    <!-- PERUBAHAN DI SINI: Path ke gambar QRIS sudah diperbaiki -->
+                    <img src="{{ url_for('static', filename='qris_almaruf.jpeg') }}" alt="QRIS Pembayaran Al-Maruf Cell" class="img-fluid my-3" style="max-width: 300px; border: 1px solid #ddd;">
+                    
+                    <div class="alert alert-warning mt-3" role="alert">
+                        <h5 class="alert-heading">Penting!</h5>
+                        <p>Setelah melakukan pembayaran, pesanan Anda akan diproses secara manual oleh admin setelah pembayaran terverifikasi.</p>
+                        <p class="mb-0">Anda dapat melihat status pesanan Anda di halaman "Pesananku".</p>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('user_orders') }}" class="btn btn-primary">
+                        <i class="fas fa-list-alt"></i> Lihat Pesananku
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        <i class="fas fa-store"></i> Kembali ke Toko
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

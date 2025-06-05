@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Top Up Saldo{% endblock %}
+
+{% block head_extra %}
+  {% if MIDTRANS_CLIENT_KEY %}
+    <!-- Pilih URL Snap JS yang sesuai (Sandbox atau Produksi) -->
+    {% if app_config.ENV == 'development' or not MIDTRANS_IS_PRODUCTION %}
+      <script type="text/javascript"
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="{{ MIDTRANS_CLIENT_KEY }}"></script>
+      <meta name="midtrans-environment" content="sandbox"> <!-- Info untuk diri sendiri -->
+    {% else %}
+      <script type="text/javascript"
+        src="https://app.midtrans.com/snap/snap.js"
+        data-client-key="{{ MIDTRANS_CLIENT_KEY }}"></script>
+      <meta name="midtrans-environment" content="production"> <!-- Info untuk diri sendiri -->
+    {% endif %}
+  {% else %}
+    <!-- Fallback jika client key tidak ada -->
+    <script>console.warn("Midtrans Client Key tidak tersedia. Pembayaran tidak akan berfungsi.");</script>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Top Up Saldo</h2>
+    <p>Saldo Anda saat ini: <strong>{{ current_user.balance | default(0) | format_rupiah if current_user else 'N/A' }}</strong></p>
+
+    {% include '_messages.html' %} <!-- Asumsi Anda punya template _messages.html untuk flash -->
+
+    {% if MIDTRANS_CLIENT_KEY %}
+    <form method="POST" id="topup-form" class="mb-3">
+        <div class="mb-3">
+            <label for="amount" class="form-label">Jumlah Top Up (Minimal Rp 10.000)</label>
+            <input type="number" class="form-control" id="amount" name="amount" min="10000" step="1000" value="{{ amount_value if amount_value else '10000' }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit-topup-form-button">Lanjutkan ke Pembayaran</button>
+    </form>
+
+    <!-- Tombol ini akan di-trigger oleh JavaScript jika snap_token ada -->
+    <button id="pay-button" class="btn btn-success mt-2" style="display: none;">Bayar Sekarang dengan Midtrans</button>
+
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+      Layanan pembayaran saat ini tidak tersedia. Silakan coba lagi nanti atau hubungi administrator.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {% if snap_token and MIDTRANS_CLIENT_KEY %}
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      var payButton = document.getElementById('pay-button');
+      var topupFormButton = document.getElementById('submit-topup-form-button');
+
+      if (payButton && topupFormButton) {
+        payButton.style.display = 'block'; // Tampilkan tombol bayar Midtrans
+        topupFormButton.style.display = 'none'; // Sembunyikan tombol submit form awal
+        
+        payButton.onclick = function (event) {
+          event.preventDefault(); // Mencegah aksi default jika ada
+          console.log("Attempting to pay with Snap Token: {{ snap_token }}");
+          snap.pay('{{ snap_token }}', {
+            onSuccess: function(result){
+              /* Pembayaran berhasil di sisi KLIEN (pop-up).
+                 Konfirmasi akhir akan datang dari webhook.
+                 Redirect ke halaman finish dengan info. */
+              console.log('Snap onSuccess:', result);
+              // result.order_id, result.status_code, result.transaction_status
+              var finishUrl = "{{ url_for('top_up_finish') }}?order_id=" + result.order_id + "&status_code=" + result.status_code + "&transaction_status=" + result.transaction_status + "&payment_type=" + result.payment_type;
+              window.location.href = finishUrl;
+            },
+            onPending: function(result){
+              /* Pembayaran pending di sisi KLIEN.
+                 Konfirmasi akhir akan datang dari webhook. */
+              console.log('Snap onPending:', result);
+              var finishUrl = "{{ url_for('top_up_finish') }}?order_id=" + result.order_id + "&status_code=" + result.status_code + "&transaction_status=" + result.transaction_status + "&payment_type=" + result.payment_type;
+              window.location.href = finishUrl;
+            },
+            onError: function(result){
+              /* Terjadi error saat proses pembayaran di pop-up. */
+              console.error('Snap onError:', result);
+              alert("Pembayaran gagal atau dibatalkan. " + (result.status_message || "Silakan coba lagi."));
+              // Kembali ke halaman topup untuk mencoba lagi atau mengubah jumlah
+              window.location.href = "{{ url_for('top_up_saldo') }}";
+            },
+            onClose: function(){
+              /* Pengguna menutup pop-up Snap tanpa menyelesaikan. */
+              console.log('Snap onClose: customer closed the popup without finishing the payment');
+              // Anda bisa memberi tahu pengguna atau membiarkan mereka di halaman top-up
+              // alert('Anda menutup jendela pembayaran sebelum selesai.');
+              // Tombol "Lanjutkan ke Pembayaran" bisa ditampilkan lagi
+              if (topupFormButton) topupFormButton.style.display = 'block';
+              if (payButton) payButton.style.display = 'none';
+            }
+          });
+        };
+        // Langsung trigger pembayaran jika snap_token ada saat halaman load
+        // Ini berguna jika pengguna submit form, halaman reload dengan token, lalu langsung bayar.
+         payButton.click(); // Uncomment jika ingin langsung trigger.
+                           // Tapi lebih baik user klik tombol "Bayar Sekarang dengan Midtrans" secara eksplisit.
+      } else {
+        console.log("Pay button or topup form button not found, or snap token not present.");
+      }
+    });
+  </script>
+  {% endif %}
+{% endblock %}

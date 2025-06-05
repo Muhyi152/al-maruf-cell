@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %} {# Import macros dari file #}
+
+{% block title %}Login - Aplikasi Pulsa{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Login</h2>
+                <!-- Di dalam templates/login.html, di bawah tombol login -->
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    {{ macros.form_field(name='username', label_text='Username', required=True, placeholder='Masukkan username Anda') }}
+                    {{ macros.form_field(name='password', label_text='Password', type='password', required=True, placeholder='Masukkan password Anda') }}
+                    
+                    {{ macros.submit_button(text='Login', btn_class='btn-primary w-100', icon_class='fas fa-sign-in-alt') }}
+                </form>
+                <p class="mt-3 text-center">Belum punya akun? <a href="{{ url_for('register') }}">Daftar di sini</a></p>
+                <div class="text-center mt-3">
+      <a href="{{ url_for('forgot_password') }}">Lupa Password?</a>
+    </div>
+                {# Panggil macro flash_messages jika belum ada di base.html #}
+                {# {{ macros.flash_messages() }} #}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

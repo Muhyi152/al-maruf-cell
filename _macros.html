@@ -1,0 +1,102 @@
+{# templates/_macros.html #}
+
+{# Macro untuk merender field input teks standar Bootstrap #}
+{% macro form_field(name, label_text, type='text', value='', placeholder='', required=False, help_text=None, errors=None, readonly=False) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label_text }}</label>
+    <input type="{{ type }}"
+           class="form-control {% if errors %}is-invalid{% endif %}"
+           id="{{ name }}"
+           name="{{ name }}"
+           value="{{ value|e if value is not none else '' }}"
+           {% if placeholder %}placeholder="{{ placeholder|e }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if readonly %}readonly{% endif %}>
+    {% if help_text %}
+        <div id="{{ name }}Help" class="form-text">{{ help_text }}</div>
+    {% endif %}
+    {% if errors %}
+        <div class="invalid-feedback">
+            {% for error in errors %}
+                <span>{{ error }}</span><br>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Macro untuk merender textarea Bootstrap #}
+{% macro textarea_field(name, label_text, value='', placeholder='', required=False, rows=3, help_text=None, errors=None, readonly=False) %}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label_text }}</label>
+    <textarea class="form-control {% if errors %}is-invalid{% endif %}"
+              id="{{ name }}"
+              name="{{ name }}"
+              rows="{{ rows }}"
+              {% if placeholder %}placeholder="{{ placeholder|e }}"{% endif %}
+              {% if required %}required{% endif %}
+              {% if readonly %}readonly{% endif %}>{{ value|e if value is not none else '' }}</textarea>
+    {% if help_text %}
+        <div id="{{ name }}Help" class="form-text">{{ help_text }}</div>
+    {% endif %}
+    {% if errors %}
+        <div class="invalid-feedback">
+            {% for error in errors %}
+                <span>{{ error }}</span><br>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Macro untuk merender select dropdown Bootstrap #}
+{% macro select_field(name, label_text, options, selected_value='', required=False, help_text=None, errors=None, disabled=False) %}
+{# options adalah list of tuples: [('value1', 'Display Text 1'), ('value2', 'Display Text 2')] #}
+<div class="mb-3">
+    <label for="{{ name }}" class="form-label">{{ label_text }}</label>
+    <select class="form-select {% if errors %}is-invalid{% endif %}"
+            id="{{ name }}"
+            name="{{ name }}"
+            {% if required %}required{% endif %}
+            {% if disabled %}disabled{% endif %}>
+        <option value="" disabled {% if not selected_value %}selected{% endif %}>-- Pilih {{ label_text|lower }} --</option>
+        {% for option_value, option_text in options %}
+            <option value="{{ option_value }}" {% if option_value|string == selected_value|string %}selected{% endif %}>
+                {{ option_text }}
+            </option>
+        {% endfor %}
+    </select>
+    {% if help_text %}
+        <div id="{{ name }}Help" class="form-text">{{ help_text }}</div>
+    {% endif %}
+    {% if errors %}
+        <div class="invalid-feedback">
+            {% for error in errors %}
+                <span>{{ error }}</span><br>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Macro untuk tombol submit Bootstrap #}
+{% macro submit_button(text='Simpan', btn_class='btn-primary', icon_class=None) %}
+<button type="submit" class="btn {{ btn_class }}">
+    {% if icon_class %}<i class="{{ icon_class }}"></i> {% endif %}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{# Macro untuk menampilkan pesan flash #}
+{% macro flash_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endmacro %}

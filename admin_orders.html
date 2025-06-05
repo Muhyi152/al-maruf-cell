@@ -1,0 +1,75 @@
+<!-- templates/admin_orders.html (Bagian yang dimodifikasi) -->
+{% extends "base.html" %}
+
+{% block title %}Kelola Pesanan{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Kelola Pesanan</h2>
+    <!-- ... (kode lain) ... -->
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID Pesanan</th>
+                <th>User ID</th>
+                <th>Produk</th>
+                <th>Nomor Tujuan</th>
+                <th>Total (Rp)</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+                <th>Aksi</th>
+                <th>Struk</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id[:8] }}...</td>
+                <td>{{ order.user_id }}</td>
+                <td>{{ order.product_name }}</td>
+                <td>{{ order.nomor_tujuan }}</td>
+                <td>{{ order.total_price | format_rupiah }}</td>
+                <td>{{ order.timestamp_completed or order.timestamp_failed or order.timestamp }}</td>
+                <td>
+                    {# Bagian untuk menampilkan status badge - ini sudah benar #}
+                    {% set status_class = "status-" + (order.status | lower | replace('_', '-')) %}
+                    {% set display_status = order.status.replace('_', ' ') %}
+
+                    {% if order.status == 'processed' or order.status == 'topup_completed' %}
+                        <span class="badge bg-success text-capitalize {{ status_class }}">{{ display_status }}</span>
+                    {% elif order.status == 'pending_processing' or order.status == 'topup_pending_payment' %}
+                        <span class="badge bg-warning text-capitalize {{ status_class }}">{{ display_status }}</span>
+                    {% elif order.status == 'failed' or order.status == 'topup_failed' %}
+                        <span class="badge bg-danger text-capitalize {{ status_class }}">{{ display_status }}</span>
+                    {% else %} {# Ini akan mencakup 'pending_qris_manual_confirmation' dan status lain yang tidak cocok di atas #}
+                        <span class="badge bg-secondary text-capitalize {{ status_class }}">{{ display_status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {# PERBAIKAN/MODIFIKASI DI SINI PADA KONDISI IF #}
+                    {% if not order.id.startswith("TOPUP-") and (order.status == 'pending_processing' or order.status == 'pending_qris_manual_confirmation') %}
+                    <form action="{{ url_for('admin_process_order', order_id=order.id) }}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-success btn-sm">Proses</button>
+                    </form>
+                    <form action="{{ url_for('admin_fail_order', order_id=order.id) }}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Gagal</button>
+                    </form>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('tampilkan_struk', order_id=order.id) }}" class="btn btn-info btn-sm" title="Lihat Struk">
+                        <i class="fas fa-print"></i>
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center">Tidak ada pesanan.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block head_extra %}
+{# Jika Anda menggunakan Font Awesome dari CDN di base.html, ini tidak perlu. #}
+{# Jika tidak, Anda mungkin perlu link ke Font Awesome di sini atau di base.html #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary shadow h-100"> {# Ubah bg-info ke bg-primary untuk konsistensi jika mau #}
+                <div class="card-header"><i class="fas fa-shopping-cart me-2"></i>Total Pesanan</div>
+                <div class="card-body">
+                    <h4 class="card-title display-6">{{ total_orders }}</h4>
+                    <p class="card-text">Jumlah semua pesanan yang masuk (produk & top-up).</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-dark bg-warning shadow h-100"> {# Text-dark untuk kontras lebih baik di bg-warning #}
+                <div class="card-header"><i class="fas fa-hourglass-half me-2"></i>Pesanan Produk Pending</div>
+                <div class="card-body">
+                    <h4 class="card-title display-6">{{ pending_orders }}</h4>
+                    <p class="card-text">Pesanan produk yang menunggu untuk diproses oleh admin.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success shadow h-100">
+                <div class="card-header"><i class="fas fa-wallet me-2"></i>Saldo Akun Admin</div>
+                <div class="card-body">
+                    <h4 class="card-title display-6">{{ admin_balance | format_rupiah }}</h4>
+                    <p class="card-text">Total saldo di akun admin utama.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# PENAMBAHAN BAGIAN TOTAL PENDAPATAN PRODUK & LAPORAN EXCEL #}
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="card border-success shadow h-100">
+                <div class="card-header bg-success text-white"><i class="fas fa-chart-line me-2"></i>Total Pendapatan dari Produk</div>
+                <div class="card-body">
+                    {% if total_pendapatan_kas is defined %}
+                        <h4 class="card-title display-6 text-success">{{ total_pendapatan_kas | format_rupiah }}</h4>
+                        <p class="card-text">Total pendapatan dari penjualan produk yang telah diproses.</p>
+                    {% else %}
+                        <p class="card-text">Data pendapatan belum tersedia.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card border-info shadow h-100">
+                <div class="card-header bg-info text-white"><i class="fas fa-file-excel me-2"></i>Laporan Penjualan</div>
+                <div class="card-body">
+                    <h5 class="card-title">Laporan Mingguan (Produk)</h5>
+                    <p class="card-text">Unduh rekap penjualan produk yang telah diproses selama minggu ini dalam format Excel.</p>
+                    <a href="{{ url_for('export_weekly_sales_excel') }}" class="btn btn-info text-white">
+                        <i class="fas fa-download me-1"></i> Unduh Laporan Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# AKHIR PENAMBAHAN #}
+
+    <h2 class="mt-5 mb-3"><i class="fas fa-tasks me-2"></i>Aksi Cepat</h2>
+    <div class="list-group shadow-sm">
+        <a href="{{ url_for('admin_products') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-box-open me-2"></i> Kelola Produk
+        </a>
+        <a href="{{ url_for('admin_orders') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-list-alt me-2"></i> Kelola Pesanan</span>
+            {% if pending_orders > 0 %}
+                <span class="badge bg-danger rounded-pill">{{ pending_orders }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin_add_product') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-plus-circle me-2"></i> Tambah Produk Baru
+        </a>
+    </div>
+</div>
+{% endblock %}
